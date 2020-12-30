@@ -1,0 +1,1 @@
+hmmsearch --tblout dom_all.out Path/Pfam-A.hmm '**/surfaceome_modeling/data/databases/proteomes/output/proteomesUP000005640_all_ecds.fasta'
