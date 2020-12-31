@@ -30,7 +30,7 @@ import io
 def get_proteome(path,output_file_type, output_path):
 
     # Get tab files containing proteomes of interest
-    all_files = [x for x in os.listdir(path) if 'tab' in x]
+    all_files = [x for x in os.listdir(path) if '.tab' in x]
     all_files.sort()
 
     # Define the URL parameters
