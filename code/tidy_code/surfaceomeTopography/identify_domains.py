@@ -79,17 +79,18 @@ def subset_tmd(df_gff):
 
     return seq_len(df)
 
-def order_domains(ecds, icds, tmds):
+def order_domains(ecds, icds, tmds, gpi):
     #takes subseted_domain dataframes
     #concats, orders and lables
-    ecd = ecds.assign(domain = 'ecd')
-    icd = icds.assign(domain = 'icd')
-    tm = tmds.assign(domain = 'tmd')
+    ecd = ecds.assign(domain = 'ecd', source = 'ecd')
+    icd = icds.assign(domain = 'icd', source = 'icd')
+    tm = tmds.assign(domain = 'tmd', source = 'tmd')
+    gpis = gpi.assign(domain = 'ecd', source = 'gpi').drop(columns = 'Entry')
 
-    df = pd.concat([ecd,icd, tm]).reset_index(drop =True)
+    df = pd.concat([ecd,icd, tm, gpis]).reset_index(drop =True)
 
     #assign domain order
-    df = df.assign(domain_order = df.sort_values('start').groupby('ID link').cumcount()+1)
+    df = df.assign(domain_order = df.sort_values('start').groupby('ID link')['start'].rank('dense'))
 
     return df
 
@@ -137,18 +138,27 @@ def phyre_filter(df):
     return phyre.reset_index(drop=True)
 
 
-def surfaceome_df(gpi, ecd, short, long = pd.DataFrame()):
+def surfaceome_df(gpi, ecd, short = None, long = pd.DataFrame()):
     #combine dataframes for creating total ECDs dataframe
+    #use
     df1 = gpi.assign(source = 'gpi')
     df2 = ecd.assign(source = 'ecd')
-    df4 =short.assign(source = 'short')
+
+    if short is not None:
+        df4 =short.assign(source = 'short')
+
+    else:
+        df2 = df2[~(df2['seq_len'] < 30)]
+        short = ecd[(ecd['seq_len'] < 30)]
+        df4 =short.assign(source = 'short')
+
     if long.empty == True:
         total = pd.concat([df1, df2, df4], sort = False)
-        total.drop(['index', 'Entry'], axis =1, inplace = True)
+        total.drop(['Entry'], axis =1, inplace = True)
 
     else:
         df3 =long.assign(source = 'long')
         total = pd.concat([df1, df2, df3, df4], sort = False)
-        total.drop(['index', 'Entry', 'g'], axis =1, inplace = True)
+        total.drop(['Entry', 'g'], axis =1, inplace = True)
 
     return total

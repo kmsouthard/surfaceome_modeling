@@ -18,24 +18,24 @@ def import_gff(path):
     #read gff file and assign columns
     full = pd.read_csv(path, sep ='\t', comment ='#', names = ['ID link',
                        'up', 'td', 'start','end', '.', '-', '+', 'note', 'NaN'])
-    
+
     #drop columns with no infromation
     full = full.drop(['up','.','-','+','NaN'], axis =1)
-    
+
     #returns dataframe with uniprot IDs in first column
     return full
 
 
 def import_tab(path):
-    
+
     #read tab file
     full = pd.read_csv(path, sep = "\t")
-    
+
     return full
-    
-    
+
+
 def import_fasta(path):
-    
+
     Full_seq = list(SeqIO.parse(path, "fasta"))
 
 
@@ -49,18 +49,18 @@ def import_fasta(path):
         #add back to seq_record
         seq_record.id = ID
         seq_record.name = Name[0]
-       
+
     record_dict = SeqIO.to_dict(Full_seq)
     return record_dict
 
 def fasta_subset(df, record_dict):
     #create list of sequencences previously selected from gff file
-    
-    df.reset_index(inplace = True)
+
+    df.reset_index(inplace = True, drop = True)
     
     sub_seq = [] # Setup an empty list
 
-    #loop over 
+    #loop over
     for idx in range(0, len(df['ID link'])):
         r_id = record_dict[df['ID link'][idx]].id+'[' +str(df['start'][idx].astype('int')) +':' + str(df['end'][idx].astype('int'))+']'
         r_seq = record_dict[df['ID link'][idx]].seq[int(df['start'][idx]): int(df['end'][idx])]
