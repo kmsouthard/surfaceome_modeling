@@ -22,6 +22,7 @@ Proteome ID
 
 import requests
 import pandas as pd
+import numpy as np
 
 # Define request
 
@@ -60,6 +61,48 @@ def retrieve_disorder(accessions, proteome, output_path):
     f.close()
 
     print('disorder annotations written to file')
+
+
+#expand list of lists into their own rows
+def explode(df, lst_cols, fill_value='', preserve_index=False):
+    # make sure `lst_cols` is list-alike
+    if (lst_cols is not None
+        and len(lst_cols) > 0
+        and not isinstance(lst_cols, (list, tuple, np.ndarray, pd.Series))):
+        lst_cols = [lst_cols]
+    # all columns except `lst_cols`
+    idx_cols = df.columns.difference(lst_cols)
+    # calculate lengths of lists
+    lens = df[lst_cols[0]].str.len()
+    # preserve original index values
+    idx = np.repeat(df.index.values, lens)
+    # create "exploded" DF
+    res = (pd.DataFrame({
+                col:np.repeat(df[col].values, lens)
+                for col in idx_cols},
+                index=idx)
+             .assign(**{col:np.concatenate(df.loc[lens>0, col].values)
+                            for col in lst_cols}))
+    # append those rows that have empty lists
+    if (lens == 0).any():
+        # at least one list in cells is empty
+        res = (res.append(df.loc[lens==0, idx_cols], sort=False)
+                  .fillna(fill_value))
+    # revert the original index order
+    res = res.sort_index()
+    # reset index if requested
+    if not preserve_index:
+        res = res.reset_index(drop=True)
+    return res
+
+def import_disorder(output_path, proteome):
+    disorder = pd.read_csv(output_path+proteome+'_disorder_full.txt', sep = '\t',
+                      header = None, names = ['ID link', 'mobi', 'disordered_regions'])
+
+    disorder['disordered_regions'] = disorder.disordered_regions.apply(lambda x: x[2:-2].split('],['))
+    disorder = disorder[disorder['disordered_regions'].map(lambda d: len(d)) > 2]
+
+    return explode(disorder, 'disordered_regions')
 
 # handle data
 #print (data)
