@@ -104,5 +104,30 @@ def import_disorder(output_path, proteome):
 
     return explode(disorder, 'disordered_regions')
 
+def parse_disorder(disorder):
+    #assign start col
+    disorder2 = disorder.assign(disorder_start = disorder['disordered_regions'].apply(lambda x: x.split(',')[0]))
+    #assign end col
+    disorder3 = disorder2.assign(disorder_end = disorder2['disordered_regions'].apply(lambda x: x.split(',')[1]))
+    #assign type col
+    disorder4 = disorder3.assign(disorder_type = disorder3['disordered_regions'].apply(lambda x: x.split(',')[2]))
+    #clean type col
+    disorder5 = disorder4.assign(disorder_type = disorder4.disorder_type.apply(lambda x: x.strip('"')))
+
+    return disorder5
+
+def surface_disorder(disorder, surfaceome):
+
+    surfaceome_disorder = surfaceome.merge(disorder, on ='ID link', how ='left')
+    surfaceome_disorder['disorder_start'] = pd.to_numeric(surfaceome_disorder['disorder_start'])
+    surfaceome_disorder['disorder_end'] = pd.to_numeric(surfaceome_disorder['disorder_end'])
+
+    ecd_disorder = surfaceome_disorder[
+                        (surfaceome_disorder['end'] >= surfaceome_disorder['disorder_end'])
+                        &(surfaceome_disorder['start'] <= surfaceome_disorder['disorder_start'])]
+
+    ecd_disorder = ecd_disorder.assign(disorder_len = ecd_disorder['disorder_end'] - ecd_disorder['disorder_start'])
+
+    return ecd_disorder
 # handle data
 #print (data)
