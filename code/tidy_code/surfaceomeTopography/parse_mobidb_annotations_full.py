@@ -25,39 +25,41 @@ import pandas as pd
 
 # Define request
 
-proteome = 'UP000005640'
+#proteome = 'UP000005640'
 
-surfaceome_path = '/Users/southk/Box Sync/surfaceome_modeling/data/raw_data/surface_proteins/'
-output_path = '/Users/southk/Box Sync/surfaceome_modeling/data/raw_data/disorder_annotations/full/'
+#surfaceome_path = '/Users/southk/Box Sync/surfaceome_modeling/data/raw_data/surface_proteins/'
+#output_path = '/Users/southk/Box Sync/surfaceome_modeling/data/raw_data/disorder_annotations/full/'
 
-surfaceome = pd.read_csv(surfaceome_path+proteome+'.csv')
+#surfaceome = pd.read_csv(surfaceome_path+proteome+'.csv')
 
-accessions = surfaceome['ID link'].unique().tolist()
+#accessions = surfaceome['ID link'].unique().tolist()
 
-acceptHeader = 'text/plain'
-f= open(output_path+proteome+'_disorder_full.txt', 'w')
+def retrieve_disorder(accessions, proteome, output_path):
 
-for accession in accessions:
-            
-    #create individual file name for proteome
-            
-    print("retrieving "+accession+" data...")
-            
+    acceptHeader = 'text/plain'
+    f= open(output_path+proteome+'_disorder_full.txt', 'w')
 
-    url = "http://mobidb.bio.unipd.it/ws/"+accession+"/consensus"
+    for accession in accessions:
 
-    url = requests.get(url, headers={"Accept" : acceptHeader})
+        #create individual file name for proteome
 
-    data = url.text
+        print("retrieving "+accession+" data...")
 
-    for line in data.splitlines():
-        if 'mobidb_consensus.disorder.full.full.regions' in line:
-            #print(line)
-            f.write(line+'\n')
-        
-f.close()
 
+        url = "http://mobidb.bio.unipd.it/ws/"+accession+"/consensus"
+
+        url = requests.get(url, headers={"Accept" : acceptHeader})
+
+        data = url.text
+
+        for line in data.splitlines():
+            if 'mobidb_consensus.disorder.full.full.regions' in line:
+                #print(line)
+                f.write(line+'\n')
+
+    f.close()
+
+    print('disorder annotations written to file')
 
 # handle data
 #print (data)
-
