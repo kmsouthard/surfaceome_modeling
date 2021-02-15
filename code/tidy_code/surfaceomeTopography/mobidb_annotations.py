@@ -62,6 +62,33 @@ def retrieve_disorder(accessions, proteome, output_path):
 
     print('disorder annotations written to file')
 
+def retrieve_disorder_lite(accessions, proteome, output_path):
+
+    acceptHeader = 'text/plain'
+    f= open(output_path+proteome+'_disorder_lite.txt', 'w')
+
+    for accession in accessions:
+
+        #create individual file name for proteome
+
+        print("retrieving "+accession+" data...")
+
+
+        url = "http://mobidb.bio.unipd.it/ws/"+accession+"/consensus"
+
+        url = requests.get(url, headers={"Accept" : acceptHeader})
+
+        data = url.text
+
+        for line in data.splitlines():
+            if 'mobidb_consensus.disorder.predictors.mobidb-lite.regions' in line:
+                #print(line)
+                f.write(line+'\n')
+
+    f.close()
+
+    print('disorder annotations written to file')
+
 
 #expand list of lists into their own rows
 def explode(df, lst_cols, fill_value='', preserve_index=False):
@@ -95,8 +122,8 @@ def explode(df, lst_cols, fill_value='', preserve_index=False):
         res = res.reset_index(drop=True)
     return res
 
-def import_disorder(output_path, proteome):
-    disorder = pd.read_csv(output_path+proteome+'_disorder_full.txt', sep = '\t',
+def import_disorder(output_path, proteome, method = 'full'):
+    disorder = pd.read_csv(output_path+proteome+'_disorder_'+method+'.txt', sep = '\t',
                       header = None, names = ['ID link', 'mobi', 'disordered_regions'])
 
     disorder['disordered_regions'] = disorder.disordered_regions.apply(lambda x: x[2:-2].split('],['))
@@ -114,7 +141,9 @@ def parse_disorder(disorder):
     #clean type col
     disorder5 = disorder4.assign(disorder_type = disorder4.disorder_type.apply(lambda x: x.strip('"')))
 
-    return disorder5
+    disorder6 = disorder5[disorder5.disorder_type.str.contains('D|d')]
+
+    return disorder6
 
 def surface_disorder(disorder, surfaceome):
 
@@ -128,6 +157,19 @@ def surface_disorder(disorder, surfaceome):
 
     ecd_disorder = ecd_disorder.assign(disorder_len = ecd_disorder['disorder_end'] - ecd_disorder['disorder_start'])
 
-    return ecd_disorder
+    return ecd_disorder[ecd_disorder.disorder_len > 0].drop_duplicates(keep = 'first')
+
+def summarize_disorder(ecd_disorder, surfaceome):
+
+    disorder_sum = ecd_disorder[['ID link','disorder_start', 'disorder_end', 'start', 'end','disorder_len']].groupby(['ID link', 'start', 'end'], as_index =False)['disorder_len'].sum()
+    disorder_sum = disorder_sum.assign(disorder_first = disorder_grouped['disorder_start'].min()['disorder_start'],
+                   disorder_last = disorder_grouped['disorder_end'].max()['disorder_end'])
+
+    surfaceome_disorder = pd.merge(ecds_classified, disorder_sum, on = ['ID link', 'start', 'end'], how = 'left')
+
+    surfaceome_disorder = surfaceome_disorder.assign(percent_disorder =
+                                               (surfaceome_disorder.disorder_len / surfaceome_disorder.seq_len) * 100)
+
+   return surface_disorder
 # handle data
 #print (data)
