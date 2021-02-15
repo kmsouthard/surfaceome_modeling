@@ -167,8 +167,7 @@ def summarize_disorder(ecd_disorder, surfaceome):
 
     surfaceome_disorder = pd.merge(ecds_classified, disorder_sum, on = ['ID link', 'start', 'end'], how = 'left')
 
-    surfaceome_disorder = surfaceome_disorder.assign(percent_disorder =
-                                               (surfaceome_disorder.disorder_len / surfaceome_disorder.seq_len) * 100)
+    surfaceome_disorder = surfaceome_disorder.assign(percent_disorder = (surfaceome_disorder.disorder_len / surfaceome_disorder.seq_len) * 100)
 
    return surface_disorder
 # handle data
