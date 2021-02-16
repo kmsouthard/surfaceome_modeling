@@ -5,3 +5,4 @@ from .memory_optimization import *
 from .mobidb_annotations import *
 from .phyre2_parsing import *
 from .plotting_size import *
+from .glycosite_annotations import *
