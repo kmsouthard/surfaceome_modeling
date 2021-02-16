@@ -54,6 +54,7 @@ def retrieve_disorder(accessions, proteome, output_path):
         data = url.text
 
         for line in data.splitlines():
+            print(line)
             if 'mobidb_consensus.disorder.full.full.regions' in line:
                 #print(line)
                 f.write(line+'\n')
@@ -79,8 +80,10 @@ def retrieve_disorder_lite(accessions, proteome, output_path):
         url = requests.get(url, headers={"Accept" : acceptHeader})
 
         data = url.text
+        print(data)
 
         for line in data.splitlines():
+            print(line)
             if 'mobidb_consensus.disorder.predictors.mobidb-lite.regions' in line:
                 #print(line)
                 f.write(line+'\n')
@@ -161,14 +164,14 @@ def surface_disorder(disorder, surfaceome):
 
 def summarize_disorder(ecd_disorder, surfaceome):
 
+    disorder_grouped = ecd_disorder[['ID link','disorder_start', 'disorder_end', 'start', 'end','disorder_len']].groupby(['ID link', 'start', 'end'], as_index =False)
+
     disorder_sum = ecd_disorder[['ID link','disorder_start', 'disorder_end', 'start', 'end','disorder_len']].groupby(['ID link', 'start', 'end'], as_index =False)['disorder_len'].sum()
     disorder_sum = disorder_sum.assign(disorder_first = disorder_grouped['disorder_start'].min()['disorder_start'],
                    disorder_last = disorder_grouped['disorder_end'].max()['disorder_end'])
 
-    surfaceome_disorder = pd.merge(ecds_classified, disorder_sum, on = ['ID link', 'start', 'end'], how = 'left')
+    surfaceome_disorder = pd.merge(surfaceome, disorder_sum, on = ['ID link', 'start', 'end'], how = 'left')
 
     surfaceome_disorder = surfaceome_disorder.assign(percent_disorder = (surfaceome_disorder.disorder_len / surfaceome_disorder.seq_len) * 100)
 
-   return surface_disorder
-# handle data
-#print (data)
+    return surfaceome_disorder

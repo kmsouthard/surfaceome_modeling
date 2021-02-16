@@ -38,11 +38,11 @@ acceptHeader = 'text/plain'
 f= open(output_path+proteome+'_disorder.txt', 'w')
 
 for accession in accessions:
-            
+
     #create individual file name for proteome
-            
+
     print("retrieving "+accession+" data...")
-            
+
 
     url = "http://mobidb.bio.unipd.it/ws/"+accession+"/consensus"
 
@@ -51,13 +51,13 @@ for accession in accessions:
     data = url.text
 
     for line in data.splitlines():
+        print(line)
         if 'mobidb_consensus.disorder.predictors.mobidb-lite.regions' in line:
             #print(line)
             f.write(line+'\n')
-        
+
 f.close()
 
 
 # handle data
 #print (data)
-
