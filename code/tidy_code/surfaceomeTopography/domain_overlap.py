@@ -90,3 +90,32 @@ def find_connections():
     conns = pd.concat(dfs)
 
     return conns
+
+def annotate_subgraphs(connections, overlaps):
+    #merge the connections and overlaps dataframes so each subgraph is annotated
+    data = overlaps.merge(connections[['Subgraph', 'ID']], on=['ID'])
+
+def select_most_sig(x):
+    m = x['i-Evalue_dom'].min()
+    if len(x) > 1 and (x['i-Evalue_dom'] == m).all():
+        return -1
+    else:
+        return x['i-Evalue_dom'].idxmin()
+
+def select_hightest_score(x):
+    m = x['score_dom'].min()
+    if len(x) > 1 and (x['score_dom'] == m).all():
+        return -1
+    else:
+        return x['score_dom'].idxmax()
+
+def select_something(x, something):
+    m = x[something].min()
+    if len(x) > 1 and (x['score_dom'] == m).all():
+        return -1
+    else:
+        return x['score_dom'].idxmax()
+
+
+#selected = data.groupby(['target_name', 'Subgraph'])['score_dom', 'ID'].apply(select_max)
+#selected = selected[selected >= 0]
