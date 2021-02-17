@@ -14,6 +14,9 @@
 #3. find next best, check for overlap
 #4. if no overlap keep, if overlap detected discard
 
+#Finding the best domains with a little graph therory:
+#https://stackoverflow.com/questions/54969074/python-3-remove-overlaps-in-table
+
 def parse_hmm_scan(scan_path):
 
     hmmer_dom = pd.read_csv(scan_path, skiprows = 3, header = None,
@@ -57,3 +60,33 @@ def connections(graph, id):
             dfs(node, num)
 
     return dict_to_df(visited)
+
+def find_overlaps(data, allowed_overlap = 4):
+    #make copy of data so not mutating it
+    df = data.copy()
+    #set an id for each row
+    df.loc[:,'ID'] = range(df.shape[0])
+    #use pd.interval for intervals (add/subtract allowed overlap(total allowed overlap = 8))
+    df.loc[:,'Interval'] = df.apply(lambda x: pd.Interval(x['align_from']+allowed_overlap, x['align_to']-allowed_overlap, closed='neither'), axis=1)
+
+    return df
+
+def overlap_graph(overlap_df):
+
+    columns = ['target_name', 'Interval', 'ID']
+    connected = overlap_df[columns].merge(overlap_df[columns], on='target_name')
+    connected['Overlap'] = connected.apply(lambda x: x['Interval_x'].overlaps(x['Interval_y']), axis=1)
+    connected = connected.loc[connected['Overlap'] == True, ['target_name', 'ID_x', 'ID_y']]
+
+    graph = connected.groupby(['target_name', 'ID_x']).agg(list)
+
+    return graph
+
+def find_connections():
+    dfs = []
+    for id in graph.index.get_level_values(0).unique():
+        dfs.append(connections(graph, id))
+
+    conns = pd.concat(dfs)
+
+    return conns
