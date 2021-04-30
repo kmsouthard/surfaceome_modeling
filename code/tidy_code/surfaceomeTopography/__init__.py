@@ -6,3 +6,4 @@ from .mobidb_annotations import *
 from .phyre2_parsing import *
 from .plotting_size import *
 from .glycosite_annotations import *
+from .domain_overlap import *

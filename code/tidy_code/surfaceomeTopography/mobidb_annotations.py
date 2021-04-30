@@ -155,8 +155,8 @@ def surface_disorder(disorder, surfaceome):
     surfaceome_disorder['disorder_end'] = pd.to_numeric(surfaceome_disorder['disorder_end'])
 
     ecd_disorder = surfaceome_disorder[
-                        (surfaceome_disorder['end'] >= surfaceome_disorder['disorder_end'])
-                        &(surfaceome_disorder['start'] <= surfaceome_disorder['disorder_start'])]
+                        (surfaceome_disorder['end'] >= surfaceome_disorder['disorder_end'] - 2 )
+                        &(surfaceome_disorder['start'] <= surfaceome_disorder['disorder_start'] + 2) #allow some overlap with start/end
 
     ecd_disorder = ecd_disorder.assign(disorder_len = ecd_disorder['disorder_end'] - ecd_disorder['disorder_start'])
 
